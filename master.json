@@ -19,17 +19,17 @@
     },
     "main.coffee": {
       "path": "main.coffee",
-      "content": "do ->\n  styleNode = document.createElement(\"style\")\n  styleNode.innerHTML = require \"./style\"\n  document.head.appendChild(styleNode)\n\ndocument.body.appendChild require(\"./template\")({})\nimg = document.querySelector('img')\ncrop = document.querySelector('crop')\n\nDrop = require \"./lib/drop\"\n\nDrop document, (e) ->\n  file = e.dataTransfer.files[0]\n\n  console.log file\n  if file\n    img.src = URL.createObjectURL(file)\n",
+      "content": "do ->\n  styleNode = document.createElement(\"style\")\n  styleNode.innerHTML = require \"./style\"\n  document.head.appendChild(styleNode)\n\ndocument.body.appendChild require(\"./template\")({})\nimg = document.querySelector('img')\ncrop = document.querySelector('canvas')\n\nDrop = require \"./lib/drop\"\n\nDrop document, (e) ->\n  file = e.dataTransfer.files[0]\n\n  if file\n    handleFile(file)\n\ndocument.addEventListener \"paste\", (event) ->\n  Array::some.call event.clipboardData.items, (item) ->\n    if item.type.match /^image\\//\n      file = item.getAsFile()\n      handleFile(file)\n\n      return true\n    else\n      return false\n\nhandleFile = (file) ->\n  new Promise (resolve, reject) ->\n    img.onload = ->\n      resolve img\n    img.onerror = reject\n    img.src = URL.createObjectURL(file)\n  .then (img) ->\n    ctx = crop.getContext('2d')\n    ctx.fillStyle = \"white\"\n    ctx.fillRect(0, 0, crop.width, crop.height)\n    ctx.drawImage(img, \n      0, 0, img.width, img.height, \n      0, 0, img.width, img.height\n    )\n",
       "mode": "100644"
     },
     "style.styl": {
       "path": "style.styl",
-      "content": "html, body\n  height: 100%\n\nbody\n  margin: 0\n\nmain\n  display: block\n  position: relative\n\ncrop\n  display: block\n  position: absolute\n  border: 1px solid green\n  width: 400px\n  height: 400px\n  top: -1px\n  left: -1px\n",
+      "content": "html, body\n  height: 100%\n\nbody\n  margin: 0\n\nmain\n  display: block\n  position: relative\n\ncanvas\n  display: block\n  position: absolute\n  border: 1px solid green\n  top: -1px\n  left: -1px\n",
       "mode": "100644"
     },
     "template.jadelet": {
       "path": "template.jadelet",
-      "content": "main\n  img\n  crop\n",
+      "content": "main\n  img\n  canvas(width=640 height=400)\n",
       "mode": "100644"
     }
   },
@@ -41,17 +41,17 @@
     },
     "main": {
       "path": "main",
-      "content": "(function() {\n  var Drop, crop, img;\n\n  (function() {\n    var styleNode;\n    styleNode = document.createElement(\"style\");\n    styleNode.innerHTML = require(\"./style\");\n    return document.head.appendChild(styleNode);\n  })();\n\n  document.body.appendChild(require(\"./template\")({}));\n\n  img = document.querySelector('img');\n\n  crop = document.querySelector('crop');\n\n  Drop = require(\"./lib/drop\");\n\n  Drop(document, function(e) {\n    var file;\n    file = e.dataTransfer.files[0];\n    console.log(file);\n    if (file) {\n      return img.src = URL.createObjectURL(file);\n    }\n  });\n\n}).call(this);\n",
+      "content": "(function() {\n  var Drop, crop, handleFile, img;\n\n  (function() {\n    var styleNode;\n    styleNode = document.createElement(\"style\");\n    styleNode.innerHTML = require(\"./style\");\n    return document.head.appendChild(styleNode);\n  })();\n\n  document.body.appendChild(require(\"./template\")({}));\n\n  img = document.querySelector('img');\n\n  crop = document.querySelector('canvas');\n\n  Drop = require(\"./lib/drop\");\n\n  Drop(document, function(e) {\n    var file;\n    file = e.dataTransfer.files[0];\n    if (file) {\n      return handleFile(file);\n    }\n  });\n\n  document.addEventListener(\"paste\", function(event) {\n    return Array.prototype.some.call(event.clipboardData.items, function(item) {\n      var file;\n      if (item.type.match(/^image\\//)) {\n        file = item.getAsFile();\n        handleFile(file);\n        return true;\n      } else {\n        return false;\n      }\n    });\n  });\n\n  handleFile = function(file) {\n    return new Promise(function(resolve, reject) {\n      img.onload = function() {\n        return resolve(img);\n      };\n      img.onerror = reject;\n      return img.src = URL.createObjectURL(file);\n    }).then(function(img) {\n      var ctx;\n      ctx = crop.getContext('2d');\n      ctx.fillStyle = \"white\";\n      ctx.fillRect(0, 0, crop.width, crop.height);\n      return ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, img.width, img.height);\n    });\n  };\n\n}).call(this);\n",
       "type": "blob"
     },
     "style": {
       "path": "style",
-      "content": "module.exports = \"html,\\nbody {\\n  height: 100%;\\n}\\nbody {\\n  margin: 0;\\n}\\nmain {\\n  display: block;\\n  position: relative;\\n}\\ncrop {\\n  display: block;\\n  position: absolute;\\n  border: 1px solid #008000;\\n  width: 400px;\\n  height: 400px;\\n  top: -1px;\\n  left: -1px;\\n}\\n\";",
+      "content": "module.exports = \"html,\\nbody {\\n  height: 100%;\\n}\\nbody {\\n  margin: 0;\\n}\\nmain {\\n  display: block;\\n  position: relative;\\n}\\ncanvas {\\n  display: block;\\n  position: absolute;\\n  border: 1px solid #008000;\\n  top: -1px;\\n  left: -1px;\\n}\\n\";",
       "type": "blob"
     },
     "template": {
       "path": "template",
-      "content": "module.exports = function(data) {\n  \"use strict\";\n  return (function() {\n    var __root;\n    __root = require(\"/lib/hamlet-runtime\")(this);\n    __root.buffer(__root.element(\"main\", this, {}, function(__root) {\n      __root.buffer(__root.element(\"img\", this, {}, function(__root) {}));\n      __root.buffer(__root.element(\"crop\", this, {}, function(__root) {}));\n    }));\n    return __root.root;\n  }).call(data);\n};\n",
+      "content": "module.exports = function(data) {\n  \"use strict\";\n  return (function() {\n    var __root;\n    __root = require(\"/lib/hamlet-runtime\")(this);\n    __root.buffer(__root.element(\"main\", this, {}, function(__root) {\n      __root.buffer(__root.element(\"img\", this, {}, function(__root) {}));\n      __root.buffer(__root.element(\"canvas\", this, {\n        \"width\": 640,\n        \"height\": 400\n      }, function(__root) {}));\n    }));\n    return __root.root;\n  }).call(data);\n};\n",
       "type": "blob"
     },
     "lib/hamlet-runtime": {
